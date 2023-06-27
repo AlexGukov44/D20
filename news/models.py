@@ -94,10 +94,11 @@ class Comment(models.Model):
     data_time_comment = models.DateTimeField(auto_now_add=True)
     post_comment = models.ForeignKey(Post, on_delete=models.CASCADE)
     user_comment = models.ForeignKey(User, on_delete=models.CASCADE)
-    parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='comments_as_parent')
+    #parent = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='comments_as_parent')
     subscriptions = models.ManyToManyField(get_user_model(), related_name='subscriptions', blank=True)
     # хранит связанных пользователей, которые подписаны на уведомления
-    reply_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='comments_as_reply_to')
+    approved = models.BooleanField(default=False)
+    #reply_to = models.ForeignKey('self', null=True, blank=True, on_delete=models.CASCADE, related_name='comments_as_reply_to')
     # ссылается на родительский комментарий
     def __str__(self):
         return self.text

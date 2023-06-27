@@ -12,16 +12,20 @@ class PostForm(ModelForm):
         fields = ['title', 'text', 'category', 'author_post', 'post_news', 'check_box']
         # не забываем включить галочку в поля, иначе она не будет показываться на странице!
 
+
 class ReplyForm(ModelForm):
     class Meta:
         model = Reply
         fields = ['text']
+
 
 class CommentForm(ModelForm):
 
     class Meta:
         model = Comment
         fields = ('text',)
+
+
 class BasicSignupForm(SignupForm):
 
     def save(self, request):

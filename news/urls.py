@@ -1,14 +1,14 @@
 from django.urls import path
 
 from . import views
-from .views import PostList, PostDetail, PostUpdateView, PostDeleteView, PostCreateView, PostSearch, BaseRegisterView, \
-      CommentCreateView, CommentListView, CommentFilterView, CommentDeleteView, CommentApproveView
+from .views import PostList, PostUpdateView, PostDeleteView, PostCreateView, PostSearch, BaseRegisterView, \
+      CommentCreateView, CommentListView, CommentFilterView, CommentDeleteView, CommentApproveView, PostDetailAndCommentCreate
 from django.contrib.auth.views import LoginView, LogoutView
 from .views import upgrade_me, CategoryListView, subscribe, unsubscribe
 
 urlpatterns = [
     path('', PostList.as_view()),
-    path('<int:pk>', PostDetail.as_view(), name='post_detail'),
+    path('<int:pk>', PostDetailAndCommentCreate.as_view(), name='post_detail'),
     path('create/', PostCreateView.as_view(), name='post_add'),
     path('edit/<int:pk>', PostUpdateView.as_view(), name='post_edit'),
     path('delete/<int:pk>', PostDeleteView.as_view(), name='post_delete'),

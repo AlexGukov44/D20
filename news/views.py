@@ -1,3 +1,6 @@
+from typing import Any, Dict
+from django.forms.models import BaseModelForm
+from django.http import HttpResponse
 from django.views.generic import ListView, DetailView, UpdateView, DeleteView
 from requests import request
 
@@ -11,6 +14,7 @@ from django.shortcuts import redirect, get_object_or_404, render
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse_lazy
 from django.contrib import messages
+
 
 @login_required
 def upgrade_me(request):
@@ -28,9 +32,10 @@ class PostList(LoginRequiredMixin, ListView):
     context_object_name = 'post_news'
     paginate_by = 5
 
-    def get_context_data(self, **kwargs):  # забираем отфильтрованные объекты переопределяя метод get_context_data у наследуемого класса
+    def get_context_data(self,
+                         **kwargs):  # забираем отфильтрованные объекты переопределяя метод get_context_data у наследуемого класса
         context = super().get_context_data(**kwargs)
-        context['filter'] = PostFilter(self.request.GET, queryset=self.get_queryset())  #вписываем фильтр в контекст
+        context['filter'] = PostFilter(self.request.GET, queryset=self.get_queryset())  # вписываем фильтр в контекст
         context['categories'] = Category.objects.all()
         context['form'] = PostForm()
         context['is_not_author'] = not self.request.user.groups.filter(name='authors').exists()
@@ -45,34 +50,24 @@ class PostList(LoginRequiredMixin, ListView):
         return super().get(request, *args, **kwargs)
 
 
-'''class PostDetail(LoginRequiredMixin, DetailView):
-    model = Post
-    template_name = 'onenews.html'
-    context_object_name = 'onenews'
-    queryset = Post.objects.all()
-'''
-
-
-class PostDetail(PermissionRequiredMixin, DetailView, CreateView):
-    model = Post
-    template_name = 'onenews.html'
-    context_object_name = 'onenews'
-    queryset = Post.objects.all()
-    permission_required = 'auth.view_post'
-
+class PostDetailAndCommentCreate(LoginRequiredMixin, CreateView):
     form_class = CommentForm
-    success_url = reverse_lazy('post_detail')
+    template_name = 'onenews.html'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['form'] = CommentForm()
+        context['post'] = Post.objects.get(pk=self.kwargs['pk'])
+        context['comments'] = Comment.objects.filter(post_comment=context['post'], approved=True)
         return context
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
-        form.instance.post_id = self.kwargs['pk']
-        form.instance.parent_id = self.request.POST.get('parent_id', None)
+        object_ = form.save(commit=False)
+        object_.post_comment = Post.objects.get(pk=self.kwargs['pk'])
+        object_.user_comment = self.request.user
         return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('post_detail', kwargs={'pk': self.kwargs['pk']})
 
 
 class PostCreateView(PermissionRequiredMixin, CreateView):
@@ -80,23 +75,6 @@ class PostCreateView(PermissionRequiredMixin, CreateView):
     form_class = PostForm
     model = Post
     template_name = 'post_add.html'
-
-    # success_url = reverse_lazy('your_success_url')
-
-   # def form_valid(self, form):
-        # kek
-    #    kek = form.save(commit=False)
-     #   user = self.request.user
-      #  try:
-            #user_author = Author.objects.get(user=user)
-       #     user_author = Author.objects.get(user_author=request.user)
-        #except Author.DoesNotExist:
-            #user_author = Author.objects.create(user=user)
-    #        user_author = Author.objects.get(user_author=request.user)
-    #    post = form.save(commit=False)
-    #    post.author = user_author
-    #    post.save()
-     #   return super().form_valid(form)
 
 
 class PostUpdateView(PermissionRequiredMixin, UpdateView):
@@ -116,7 +94,7 @@ class PostDeleteView(PermissionRequiredMixin, DeleteView):
     context_object_name = 'post_delete'
 
 
-class PostSearch(ListView):   #поиск поста
+class PostSearch(ListView):  # поиск поста
     model = Post
     template_name = 'post_search.html'
     context_object_name = 'post_news'
@@ -169,7 +147,7 @@ class CommentCreateView(LoginRequiredMixin, CreateView):  # создание к�
         return super().form_valid(form)
 
 
-class CommentListView(LoginRequiredMixin, ListView):   # отображения списка комментариев пользователя
+class CommentListView(LoginRequiredMixin, ListView):  # отображения списка комментариев пользователя
     model = Comment
     template_name = 'comm_list.html'
     context_object_name = 'comments'
@@ -190,7 +168,7 @@ class CommentFilterView(LoginRequiredMixin, ListView):  # фильтрации �
         return Comment.objects.filter(user=user, post_id=post_id)
 
 
-class CommentDeleteView(LoginRequiredMixin, DeleteView):  #  удаления комментария
+class CommentDeleteView(LoginRequiredMixin, DeleteView):  # удаления комментария
     model = Comment
     success_url = reverse_lazy('comm_list')
 
@@ -261,6 +239,7 @@ def unsubscribe(request, pk):
     category.subscribers.remove(user)
     message = 'отписка от категории: '
     return render(request, 'subscribe.html', {'category': category, 'message': message})
+
 
 '''
 def add_comment(request, pk):

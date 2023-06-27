@@ -41,7 +41,7 @@ def notify_about_new_post(sender, instance, **kwargs):
 
         send_notifications(instance.preview(), instance.pk, instance.title, subscribers_emails)
 
-
+'''
 @receiver(post_save, sender=Comment)     # сигнал на добавление коментария к посту
 def send_comment_notification(sender, instance, created, **kwargs):
     if created:
@@ -60,6 +60,8 @@ def send_comment_notification(sender, instance, created, **kwargs):
             fail_silently=False,
         )
 
+'''
+'''
 
 @receiver(post_save, sender=Comment)    #  сигнал на одобрение коментария к посту автора
 def send_comment_reply_notification(sender, instance, created, **kwargs):
@@ -73,3 +75,4 @@ def send_comment_reply_notification(sender, instance, created, **kwargs):
                 [reply_to_author.email],
                 fail_silently=False,
             )
+'''
