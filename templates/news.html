@@ -26,7 +26,7 @@ Post
             <th>категории</th>
             <th>дата публикации</th>
             <th>текст</th>
-            <th>коментарии</th>
+            <!--th>коментарии</th-->
         </tr>
         {% for post in page_obj %}
         <td>
@@ -45,13 +45,13 @@ Post
             {% endfor %}
             </td>
             <td>{{ post.date_in|date:'d M Y'}}</td>
-            <td>{{ post.text|censor|truncatechars:20}}</td>
-            <td>{% for comment in post.comments.all %}
+            <td>{{ post.text|censor|safe|truncatechars:20}}</td>
+            <!--td>{% for comment in post.comments.all %}
                 <p>{{ comment.text }}</p>
             {% empty %}
                 <p>нет комментариев</p>
             {% endfor %}
-            </td>
+            </td-->
         </tr>
         {% endfor %}
         </thead>

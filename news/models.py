@@ -118,6 +118,7 @@ class Reply(models.Model):
     def __str__(self):
         return self.text
 
+
 class BaseRegisterForm(UserCreationForm):
     email = forms.EmailField(label="Email")
     first_name = forms.CharField(label="Имя")

@@ -1,11 +1,10 @@
-from typing import Any, Dict
-from django.forms.models import BaseModelForm
-from django.http import HttpResponse
-from django.views.generic import ListView, DetailView, UpdateView, DeleteView
-from requests import request
+from django.conf import settings
+from django.core.mail import EmailMultiAlternatives, send_mail
+from django.template.loader import render_to_string
+from django.views.generic import ListView, UpdateView, DeleteView
 
-from .models import Post, Category, BaseRegisterForm, Author, Reply, Comment
-from .forms import PostForm, ReplyForm, CommentForm
+from .models import Post, Category, BaseRegisterForm, Author, Comment
+from .forms import PostForm, CommentForm
 from .filter import PostFilter
 from django.contrib.auth.models import User, Group
 from django.views.generic.edit import CreateView
@@ -23,6 +22,26 @@ def upgrade_me(request):
     if not request.user.groups.filter(name='authors').exists():
         authors_group.user_set.add(request.user)
     return redirect('/news/')
+
+
+def send_notifications(preview, pk, title, subscribers):
+    html_contect = render_to_string(
+        'post_add_email.html',
+        {
+            'text': preview,
+            'link': f'{settings.SITE_URL}/news/{pk}'
+        }
+    )
+
+    msg = EmailMultiAlternatives(
+        subject=title,
+        body='',
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        to=['aleksTest13@yandex.ru'],    # тут пишем to=subscribe для отправки на почту подписчикам, для теста моя
+    )
+    # print(settings.DEFAULT_FROM_EMAIL)
+    msg.attach_alternative(html_contect, 'text/html')
+    msg.send()
 
 
 class PostList(LoginRequiredMixin, ListView):
@@ -64,6 +83,24 @@ class PostDetailAndCommentCreate(LoginRequiredMixin, CreateView):
         object_ = form.save(commit=False)
         object_.post_comment = Post.objects.get(pk=self.kwargs['pk'])
         object_.user_comment = self.request.user
+
+        # Определение темы письма и текста сообщения
+        subject = 'Новый комментарий к посту'
+        message = f'Пользователь {self.request.user.username} оставил новый комментарий к посту {self.get_success_url()}'
+
+        # Получение всех зарегистрированных пользователей
+        users = User.objects.all()
+
+        # Отправка письма каждому пользователю
+        for user in users:
+            send_mail(
+                subject,  # тема письма
+                message,  # текст сообщения
+                settings.DEFAULT_FROM_EMAIL,  # отправитель
+                [user.email],  # получатель(и)  для тестов пишу свою
+                fail_silently=False,  # не подавлять исключения при ошибках
+            )
+
         return super().form_valid(form)
 
     def get_success_url(self):
@@ -189,40 +226,6 @@ class CommentApproveView(LoginRequiredMixin, DeleteView):  # принятия к
         return super().delete(request, *args, **kwargs)
 
 
-'''
-class ReplyCreate(LoginRequiredMixin,PermissionRequiredMixin, CreateView):
-    permission_required = 'rpg.comm_create'
-    form_class = ReplyForm
-    model = Reply
-    template_name = 'comm_create.html'
-
-    def form_valid(self, form):
-        reply = form.save(commit=False)
-        if self.request.method == 'POST':
-            pk = self.request.path.split('/')[-3]
-            sender = self.request.user
-            reply.post = Post.objects.get(id=pk)
-            reply.sender = User.objects.get(username=sender)
-        reply.save()
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        url = '/'.join(self.request.path.split('/')[0:-2])
-        return url
-
-
-class Replies(PermissionRequiredMixin, ListView):
-    permission_required = 'rpg.comm_post'
-    model = Reply
-    template_name = 'comm_post.html'
-    context_object_name = 'replies'
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-        return queryset.filter(post__author_id=self.request.user.id)
-'''
-
-
 @login_required
 def subscribe(request, pk):
     user = request.user
@@ -240,19 +243,3 @@ def unsubscribe(request, pk):
     message = 'отписка от категории: '
     return render(request, 'subscribe.html', {'category': category, 'message': message})
 
-
-'''
-def add_comment(request, pk):
-    post = get_object_or_404(Post, pk=pk)
-    if request.method == 'POST':
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.post = post
-            comment.author = request.user
-            comment.save()
-            return redirect('news', pk=post.pk)
-    else:
-        form = CommentForm()
-    return render(request, 'comment_create.html', {'form': form})
-'''
