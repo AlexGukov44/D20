@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'news.apps.NewsConfig',
+    'news',    # .apps.NewsConfig
     'protect',
     'django.contrib.sites',
     'django.contrib.flatpages',

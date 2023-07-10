@@ -31,9 +31,9 @@ Post
         {% for post in page_obj %}
         <td>
             <a href="{% url 'post_detail' post.id %}">{{ post.name|title }}</a> <!-- ссылка на сам пост -->
-            <a href="{% url 'post_edit' post.id %}"style="background-color:#ffffa1"><u>Редактировать</u></a>--> <!--ссылка на редактирование поста-->
+            <a href="{% url 'post_edit' post.id %}"style="background-color:#ffffa1"><u>Редактировать</u></a> <!--ссылка на редактирование поста-->
 
-            <a href="{% url 'post_delete' post.id %}"style="color:red"><u> Удалить </u></a> --><!-- добавим ссылку на удаление поста-->
+            <a href="{% url 'post_delete' post.id %}"style="color:red"><u> Удалить </u></a> <!-- добавим ссылку на удаление поста-->
         </td>
         <tr>
         </tr>

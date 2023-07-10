@@ -97,8 +97,8 @@ class PostDetailAndCommentCreate(LoginRequiredMixin, CreateView):
                 subject,  # тема письма
                 message,  # текст сообщения
                 settings.DEFAULT_FROM_EMAIL,  # отправитель
-                [user.email],  # получатель(и)  для тестов пишу свою
-                fail_silently=False,  # не подавлять исключения при ошибках
+                [user.email],  # получатель(и)
+                fail_silently=True,  # не подавлять исключения при ошибках
             )
 
         return super().form_valid(form)
