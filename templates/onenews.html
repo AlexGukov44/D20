@@ -28,11 +28,12 @@
     <br>
     <!-- выводим существующие комментарии -->
     {% for comment in comments %}
-        <div style="dorder: 1px solid black">
+        <div style="border: 1px solid black">
             {{ comment.user_comment }}
             <br>
             {{ comment.text }}
         </div>
+        <br>
     {% endfor %}
 {% endblock content %}
 
